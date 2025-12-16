@@ -1,0 +1,183 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monthly Visit Tracker</title>
+  <style>
+    body{
+      margin:0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      padding:20px;
+    }
+    .card{
+      background:#fff;
+      width:100%;
+      max-width:900px;
+      border-radius:16px;
+      box-shadow:0 10px 25px rgba(0,0,0,0.15);
+      padding:20px;
+    }
+    h1{
+      margin:0 0 15px;
+      text-align:center;
+      color:#333;
+    }
+    .controls{
+      display:flex;
+      gap:10px;
+      justify-content:center;
+      margin-bottom:15px;
+      flex-wrap:wrap;
+    }
+    select, button{
+      padding:8px 12px;
+      border-radius:8px;
+      border:1px solid #ccc;
+      font-size:14px;
+    }
+    button{
+      cursor:pointer;
+      background:#667eea;
+      color:#fff;
+      border:none;
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+    }
+    th, td{
+      padding:10px;
+      border:1px solid #ddd;
+      text-align:center;
+      font-size:14px;
+    }
+    th{
+      background:#f5f6fa;
+    }
+    .pending{
+      background:#ffebeb;
+      color:#c0392b;
+      font-weight:bold;
+    }
+    .done{
+      background:#e8fff1;
+      color:#27ae60;
+      font-weight:bold;
+    }
+    input[type="date"], input[type="text"]{
+      width:100%;
+      box-sizing:border-box;
+      padding:6px;
+      border-radius:6px;
+      border:1px solid #ccc;
+      font-size:13px;
+    }
+    @media(max-width:600px){
+      th, td{font-size:12px; padding:8px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Monthly Visit Tracker</h1><div class="controls">
+  <select id="monthSelect"></select>
+  <button onclick="resetMonth()">New Month Reset</button>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Area Name</th>
+      <th>Visit Date</th>
+      <th>Remark</th>
+    </tr>
+  </thead>
+  <tbody id="tableBody"></tbody>
+</table>
+
+  </div><script>
+const areas = ["Sailana","Birmaval","Raoti","Ratlam","Neemuch","Mandsor"];
+const monthSelect = document.getElementById('monthSelect');
+const tableBody = document.getElementById('tableBody');
+
+function getMonthKey(){
+  return monthSelect.value;
+}
+
+function loadMonths(){
+  const now = new Date();
+  for(let i=0;i<12;i++){
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const key = d.toISOString().slice(0,7);
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = d.toLocaleString('default',{month:'long', year:'numeric'});
+    monthSelect.appendChild(opt);
+  }
+}
+
+function loadTable(){
+  tableBody.innerHTML='';
+  const key = getMonthKey();
+  const data = JSON.parse(localStorage.getItem(key) || '{}');
+
+  areas.forEach(area=>{
+    const tr = document.createElement('tr');
+
+    const tdArea = document.createElement('td');
+    tdArea.textContent = area;
+
+    const tdDate = document.createElement('td');
+    const dateInput = document.createElement('input');
+    dateInput.type='date';
+    dateInput.value = data[area]?.date || '';
+
+    const tdRemark = document.createElement('td');
+    const remarkInput = document.createElement('input');
+    remarkInput.type='text';
+    remarkInput.placeholder='Remark';
+    remarkInput.value = data[area]?.remark || '';
+
+    function updateStatus(){
+      if(dateInput.value){
+        tr.className='done';
+      }else{
+        tr.className='pending';
+      }
+      data[area] = {date:dateInput.value, remark:remarkInput.value};
+      localStorage.setItem(key, JSON.stringify(data));
+    }
+
+    dateInput.onchange = updateStatus;
+    remarkInput.oninput = updateStatus;
+
+    tdDate.appendChild(dateInput);
+    tdRemark.appendChild(remarkInput);
+
+    tr.appendChild(tdArea);
+    tr.appendChild(tdDate);
+    tr.appendChild(tdRemark);
+
+    tableBody.appendChild(tr);
+    updateStatus();
+  });
+}
+
+function resetMonth(){
+  if(confirm('Is month ka data clear karna hai?')){
+    localStorage.removeItem(getMonthKey());
+    loadTable();
+  }
+}
+
+monthSelect.onchange = loadTable;
+
+loadMonths();
+loadTable();
+</script></body>
+</html>
