@@ -134,7 +134,8 @@ function loadTable(){
 
     const tdDate = document.createElement('td');
     const dateInput = document.createElement('input');
-    dateInput.type='date';
+    dateInput.type='text';
+    dateInput.placeholder = 'dd/mm/yyyy';
     dateInput.value = data[area]?.date || '';
 
     const tdRemark = document.createElement('td');
