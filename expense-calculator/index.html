@@ -2,8 +2,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Monthly Visit Tracker</title>
-  <style>
+  <title>Monthly Visit Tracker</title>  <style>
     body{
       margin:0;
       font-family: Arial, sans-serif;
@@ -29,8 +28,8 @@
     }
     .controls{
       display:flex;
-      gap:10px;
       justify-content:center;
+      gap:10px;
       margin-bottom:15px;
       flex-wrap:wrap;
     }
@@ -65,24 +64,24 @@
     }
     .area{
       color:#000;
-      font-weight:bold;
+      font-weight:normal;
     }
     input[type="date"], input[type="text"]{
       width:100%;
-      box-sizing:border-box;
       padding:6px;
       border-radius:6px;
       border:1px solid #ccc;
       font-size:13px;
+      box-sizing:border-box;
     }
     @media(max-width:600px){
       th, td{font-size:12px; padding:8px;}
     }
-  </style>
-</head>
+  </style></head>
 <body>
   <div class="card">
     <h1>Monthly Visit Tracker</h1><div class="controls">
+  <select id="yearSelect"></select>
   <select id="monthSelect"></select>
 </div>
 
@@ -99,34 +98,46 @@
 
   </div><script>
 const areas = ["Sailana","Birmaval","Raoti","Ratlam","Neemuch","Mandsor"];
-const monthSelect = document.getElementById('monthSelect');
-const tableBody = document.getElementById('tableBody');
+const yearSelect = document.getElementById("yearSelect");
+const monthSelect = document.getElementById("monthSelect");
+const tableBody = document.getElementById("tableBody");
 
-function getMonthKey(){
-  return monthSelect.value;
+function loadYearMonth(){
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth(); // 0-based
+
+  yearSelect.innerHTML = '';
+  for(let y=currentYear-1; y<=currentYear+1; y++){
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y;
+    yearSelect.appendChild(opt);
+  }
+
+  monthSelect.innerHTML = '';
+  for(let m=0; m<12; m++){
+    const d = new Date(0, m);
+    const opt = document.createElement('option');
+    opt.value = m+1; // 1-based month for key
+    opt.textContent = d.toLocaleString('default',{month:'long'});
+    monthSelect.appendChild(opt);
+  }
+
+  yearSelect.value = currentYear;
+  monthSelect.value = currentMonth+1;
 }
 
-function loadMonths(){
-  const startYear = 2025;
-  const endYear = 2026;
-  monthSelect.innerHTML = '';
-
-  for(let y = endYear; y >= startYear; y--){
-    for(let m = 11; m >= 0; m--){
-      const d = new Date(y, m, 1);
-      const key = d.toISOString().slice(0,7);
-      const opt = document.createElement('option');
-      opt.value = key;
-      opt.textContent = d.toLocaleString('default',{month:'long', year:'numeric'});
-      monthSelect.appendChild(opt);
-    }
-  }
+function getKey(){
+  const y = yearSelect.value;
+  const m = String(monthSelect.value).padStart(2,'0');
+  return `${y}-${m}`;
 }
 
 function loadTable(){
   tableBody.innerHTML='';
-  const key = getMonthKey();
-  const data = JSON.parse(localStorage.getItem(key) || '{}');
+  const key = getKey();
+  const data = JSON.parse(localStorage.getItem(key)|| '{}');
 
   areas.forEach(area=>{
     const tr = document.createElement('tr');
@@ -137,7 +148,7 @@ function loadTable(){
 
     const tdDate = document.createElement('td');
     const dateInput = document.createElement('input');
-    dateInput.type = 'date';
+    dateInput.type='date';
     dateInput.value = data[area]?.date || '';
 
     const tdRemark = document.createElement('td');
@@ -147,17 +158,13 @@ function loadTable(){
     remarkInput.value = data[area]?.remark || '';
 
     function updateStatus(){
-      if(dateInput.value){
-        tr.className='done';
-      }else{
-        tr.className='pending';
-      }
+      tr.className = dateInput.value ? 'done':'pending';
       data[area] = {date:dateInput.value, remark:remarkInput.value};
       localStorage.setItem(key, JSON.stringify(data));
     }
 
-    dateInput.onchange = updateStatus;
-    remarkInput.oninput = updateStatus;
+    dateInput.addEventListener('change',updateStatus);
+    remarkInput.addEventListener('input',updateStatus);
 
     tdDate.appendChild(dateInput);
     tdRemark.appendChild(remarkInput);
@@ -171,9 +178,10 @@ function loadTable(){
   });
 }
 
-monthSelect.onchange = loadTable;
+yearSelect.addEventListener('change', loadTable);
+monthSelect.addEventListener('change', loadTable);
 
-loadMonths();
+loadYearMonth();
 loadTable();
 </script></body>
 </html>
