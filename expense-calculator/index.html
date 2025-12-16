@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -84,23 +85,26 @@
 </head>
 <body>
   <div class="card">
-    <h1>Monthly Visit Tracker</h1><div class="controls">
-  <select id="monthSelect"></select>
-  <button onclick="resetMonth()">New Month Reset</button>
-</div>
+    <h1>Monthly Visit Tracker</h1>
 
-<table>
-  <thead>
-    <tr>
-      <th>Area Name</th>
-      <th>Visit Date</th>
-      <th>Remark</th>
-    </tr>
-  </thead>
-  <tbody id="tableBody"></tbody>
-</table>
+    <div class="controls">
+      <select id="monthSelect"></select>
+      <button onclick="resetMonth()">New Month Reset</button>
+    </div>
 
-  </div><script>
+    <table>
+      <thead>
+        <tr>
+          <th>Area Name</th>
+          <th>Visit Date</th>
+          <th>Remark</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+<script>
 const areas = ["Sailana","Birmaval","Raoti","Ratlam","Neemuch","Mandsor"];
 const monthSelect = document.getElementById('monthSelect');
 const tableBody = document.getElementById('tableBody');
@@ -134,9 +138,20 @@ function loadTable(){
 
     const tdDate = document.createElement('td');
     const dateInput = document.createElement('input');
-    dateInput.type='text';
-    dateInput.placeholder = 'dd/mm/yyyy';
-    dateInput.value = data[area]?.date || '';
+    dateInput.type = 'date';
+
+    const dateLabel = document.createElement('div');
+    dateLabel.style.fontSize = '12px';
+    dateLabel.style.marginTop = '4px';
+    dateLabel.style.color = '#555';
+
+    if (data[area]?.date) {
+      dateLabel.textContent = data[area].date; // dd/mm/yyyy
+      const p = data[area].date.split('/');
+      if (p.length === 3) dateInput.value = `${p[2]}-${p[1]}-${p[0]}`;
+    } else {
+      dateLabel.textContent = 'dd/mm/yyyy';
+    }
 
     const tdRemark = document.createElement('td');
     const remarkInput = document.createElement('input');
@@ -180,5 +195,6 @@ monthSelect.onchange = loadTable;
 
 loadMonths();
 loadTable();
-</script></body>
+</script>
+</body>
 </html>
