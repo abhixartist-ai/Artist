@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -35,17 +34,11 @@
       margin-bottom:15px;
       flex-wrap:wrap;
     }
-    select, button{
+    select{
       padding:8px 12px;
       border-radius:8px;
       border:1px solid #ccc;
       font-size:14px;
-    }
-    button{
-      cursor:pointer;
-      background:#667eea;
-      color:#fff;
-      border:none;
     }
     table{
       width:100%;
@@ -70,6 +63,10 @@
       color:#27ae60;
       font-weight:bold;
     }
+    .area{
+      color:#000;
+      font-weight:bold;
+    }
     input[type="date"], input[type="text"]{
       width:100%;
       box-sizing:border-box;
@@ -85,26 +82,22 @@
 </head>
 <body>
   <div class="card">
-    <h1>Monthly Visit Tracker</h1>
+    <h1>Monthly Visit Tracker</h1><div class="controls">
+  <select id="monthSelect"></select>
+</div>
 
-    <div class="controls">
-      <select id="monthSelect"></select>
-      <button onclick="resetMonth()">New Month Reset</button>
-    </div>
+<table>
+  <thead>
+    <tr>
+      <th>Area Name</th>
+      <th>Visit Date</th>
+      <th>Remark</th>
+    </tr>
+  </thead>
+  <tbody id="tableBody"></tbody>
+</table>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Area Name</th>
-          <th>Visit Date</th>
-          <th>Remark</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-  </div>
-
-<script>
+  </div><script>
 const areas = ["Sailana","Birmaval","Raoti","Ratlam","Neemuch","Mandsor"];
 const monthSelect = document.getElementById('monthSelect');
 const tableBody = document.getElementById('tableBody');
@@ -114,14 +107,19 @@ function getMonthKey(){
 }
 
 function loadMonths(){
-  const now = new Date();
-  for(let i=0;i<12;i++){
-    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
-    const key = d.toISOString().slice(0,7);
-    const opt = document.createElement('option');
-    opt.value = key;
-    opt.textContent = d.toLocaleString('default',{month:'long', year:'numeric'});
-    monthSelect.appendChild(opt);
+  const startYear = 2025;
+  const endYear = 2026;
+  monthSelect.innerHTML = '';
+
+  for(let y = endYear; y >= startYear; y--){
+    for(let m = 11; m >= 0; m--){
+      const d = new Date(y, m, 1);
+      const key = d.toISOString().slice(0,7);
+      const opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = d.toLocaleString('default',{month:'long', year:'numeric'});
+      monthSelect.appendChild(opt);
+    }
   }
 }
 
@@ -135,23 +133,12 @@ function loadTable(){
 
     const tdArea = document.createElement('td');
     tdArea.textContent = area;
+    tdArea.className = 'area';
 
     const tdDate = document.createElement('td');
     const dateInput = document.createElement('input');
     dateInput.type = 'date';
-
-    const dateLabel = document.createElement('div');
-    dateLabel.style.fontSize = '12px';
-    dateLabel.style.marginTop = '4px';
-    dateLabel.style.color = '#555';
-
-    if (data[area]?.date) {
-      dateLabel.textContent = data[area].date; // dd/mm/yyyy
-      const p = data[area].date.split('/');
-      if (p.length === 3) dateInput.value = `${p[2]}-${p[1]}-${p[0]}`;
-    } else {
-      dateLabel.textContent = 'dd/mm/yyyy';
-    }
+    dateInput.value = data[area]?.date || '';
 
     const tdRemark = document.createElement('td');
     const remarkInput = document.createElement('input');
@@ -184,17 +171,9 @@ function loadTable(){
   });
 }
 
-function resetMonth(){
-  if(confirm('Is month ka data clear karna hai?')){
-    localStorage.removeItem(getMonthKey());
-    loadTable();
-  }
-}
-
 monthSelect.onchange = loadTable;
 
 loadMonths();
 loadTable();
-</script>
-</body>
+</script></body>
 </html>
