@@ -64,7 +64,8 @@
     }
     .area{
       color:#000;
-      font-weight:normal;
+      font-weight:bold;
+      text-align:left;
     }
     input[type="date"], input[type="text"]{
       width:100%;
@@ -97,7 +98,7 @@
 </table>
 
   </div><script>
-const areas = ["Sailana","Birmaval","Raoti","Ratlam","Neemuch","Mandsor"];
+const areas = ["Sailana","Birmawal","Raoti","Ratlam","Neemuch","Mandsor","Namli"];
 const yearSelect = document.getElementById("yearSelect");
 const monthSelect = document.getElementById("monthSelect");
 const tableBody = document.getElementById("tableBody");
@@ -119,7 +120,7 @@ function loadYearMonth(){
   for(let m=0; m<12; m++){
     const d = new Date(0, m);
     const opt = document.createElement('option');
-    opt.value = m+1; // 1-based month for key
+    opt.value = m+1;
     opt.textContent = d.toLocaleString('default',{month:'long'});
     monthSelect.appendChild(opt);
   }
