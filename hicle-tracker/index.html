@@ -20,7 +20,6 @@
       border-radius:16px;
       box-shadow:0 10px 25px rgba(0,0,0,0.15);
       padding:20px;
-      overflow-x:auto; /* MOBILE FIX */
     }
     h1{
       margin:0 0 15px;
@@ -42,7 +41,6 @@
     }
     table{
       width:100%;
-      min-width:600px; /* MOBILE FIX */
       border-collapse:collapse;
     }
     th, td{
@@ -66,24 +64,23 @@
     }
     .area{
       color:#000;
-      font-weight:bold;
+      font-weight:normal;
       text-align:left;
     }
     input[type="text"]{
       width:100%;
       padding:10px;
-      min-height:44px; /* DATE INPUT MOBILE FIX */
       border-radius:8px;
       border:1px solid #ccc;
-      font-size:15px;
+      font-size:15px; /* mobile readable */
+      min-height:40px; /* FIX: date hidden on mobile */
       box-sizing:border-box;
       background:#fff;
     }
     @media(max-width:600px){
       th, td{font-size:12px; padding:8px;}
     }
-
-/* Flatpickr colorful theme */
+  /* Flatpickr colorful theme */
 .flatpickr-calendar{
   border-radius:14px;
   box-shadow:0 10px 25px rgba(0,0,0,0.25);
@@ -110,7 +107,9 @@
 .flatpickr-day.today{
   border:2px solid #667eea;
 }
-.flatpickr-day.selected{
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange{
   background:linear-gradient(135deg,#667eea,#764ba2);
   color:#fff;
 }
@@ -193,7 +192,9 @@ function loadTable(){
     flatpickr(dateInput,{
       dateFormat:'d-m-Y',
       defaultDate:dateInput.value || null,
-      onChange:function(){ save(); }
+      onChange:function(selectedDates, dateStr){
+        save();
+      }
     });
 
     function save(){
