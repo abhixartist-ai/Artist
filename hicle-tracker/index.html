@@ -1,231 +1,197 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Monthly Visit Tracker</title>  <!-- Flatpickr CSS -->  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">  <style>
-    body{
-      margin:0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      min-height:100vh;
-      display:flex;
-      justify-content:center;
-      align-items:flex-start;
-      padding:20px;
-    }
-    .card{
-      background:#fff;
-      width:100%;
-      max-width:900px;
-      border-radius:16px;
-      box-shadow:0 10px 25px rgba(0,0,0,0.15);
-      padding:20px;
-    }
-    h1{
-      margin:0 0 15px;
-      text-align:center;
-      color:#333;
-    }
-    .controls{
-      display:flex;
-      justify-content:center;
-      gap:10px;
-      margin-bottom:15px;
-      flex-wrap:wrap;
-    }
-    select{
-      padding:8px 12px;
-      border-radius:8px;
-      border:1px solid #ccc;
-      font-size:14px;
-    }
-    @media(max-width:600px){
-  td:nth-child(2), th:nth-child(2){
-    min-width:140px;
-  }
-}
-    table{
-      width:100%;
-      border-collapse:collapse;
-    }
-    th, td{
-      padding:10px;
-      border:1px solid #ddd;
-      text-align:center;
-      font-size:14px;
-    }
-    th{
-      background:#f5f6fa;
-    }
-    .pending{
-      background:#ffebeb;
-      color:#c0392b;
-      font-weight:bold;
-    }
-    .done{
-      background:#e8fff1;
-      color:#27ae60;
-      font-weight:bold;
-    }
-    .area{
-      color:#000;
-      font-weight:normal;
-      text-align:left;
-    }
-    input[type="text"]{
-      width:100%;
-      padding:10px;
-      border-radius:8px;
-      border:1px solid #ccc;
-      font-size:15px; /* mobile readable */
-      min-height:40px; /* FIX: date hidden on mobile */
-      box-sizing:border-box;
-      background:#fff;
-    }
-    @media(max-width:600px){
-      th, td{font-size:12px; padding:8px;}
-    }
-  /* Flatpickr colorful theme */
-.flatpickr-calendar{
-  border-radius:14px;
-  box-shadow:0 10px 25px rgba(0,0,0,0.25);
-}
-.flatpickr-months{
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monthly Visit Tracker</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
   background:linear-gradient(135deg,#667eea,#764ba2);
-  border-radius:14px 14px 0 0;
+  padding:20px;
 }
-.flatpickr-current-month,
-.flatpickr-monthDropdown-months,
-.flatpickr-current-month .numInputWrapper{
-  color:#fff !important;
+.card{
+  background:#fff;
+  max-width:1000px;
+  margin:auto;
+  border-radius:16px;
+  padding:20px;
+  box-shadow:0 10px 25px rgba(0,0,0,.2);
 }
-.flatpickr-weekdays{
-  background:#f0f2ff;
+h1{text-align:center;margin-bottom:15px}
+
+.controls{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:15px;
 }
-.flatpickr-weekday{
-  color:#5a5fd7;
+select{
+  padding:8px 12px;
+  border-radius:8px;
+  font-size:14px;
+}
+
+/* ===== MOBILE SAFE TABLE ===== */
+.table-wrap{
+  width:100%;
+  overflow-x:auto;   /* MAIN FIX */
+}
+table{
+  width:100%;
+  min-width:520px;   /* MAIN FIX */
+  border-collapse:collapse;
+}
+th,td{
+  border:1px solid #ddd;
+  padding:10px;
+  font-size:14px;
+}
+th{background:#f4f6fb}
+
+.area{
+  text-align:left;
+  color:#000;
   font-weight:bold;
 }
-.flatpickr-day{
+
+.pending{background:#ffeded}
+.done{background:#eafff1}
+
+input[type=text]{
+  width:100%;
+  padding:10px;
+  min-height:42px;   /* MOBILE FIX */
   border-radius:8px;
+  border:1px solid #ccc;
+  font-size:14px;
+  box-sizing:border-box;
+  background:#fff;
 }
-.flatpickr-day.today{
-  border:2px solid #667eea;
+
+@media(max-width:600px){
+  th,td{font-size:12px}
 }
-.flatpickr-day.selected,
-.flatpickr-day.startRange,
-.flatpickr-day.endRange{
+
+/* Flatpickr colors */
+.flatpickr-months{
   background:linear-gradient(135deg,#667eea,#764ba2);
+}
+.flatpickr-current-month,
+.flatpickr-monthDropdown-months{
+  color:#fff !important;
+}
+.flatpickr-day.selected{
+  background:#667eea;
   color:#fff;
 }
-.flatpickr-day:hover{
-  background:#dfe4ff;
-}
-</style></head>
+</style>
+</head>
+
 <body>
-  <div class="card">
-    <h1>Monthly Visit Tracker</h1><div class="controls">
+<div class="card">
+<h1>Monthly Visit Tracker</h1>
+
+<div class="controls">
   <select id="yearSelect"></select>
   <select id="monthSelect"></select>
 </div>
 
+<div class="table-wrap">
 <table>
-  <thead>
-    <tr>
-      <th>Area Name</th>
-      <th>Visit Date (DD-MM-YYYY)</th>
-      <th>Remark</th>
-    </tr>
-  </thead>
-  <tbody id="tableBody"></tbody>
+<thead>
+<tr>
+  <th>Area Name</th>
+  <th>Visit Date (DD-MM-YYYY)</th>
+  <th>Remark</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
 </table>
+</div>
+</div>
 
-  </div>  <!-- Flatpickr JS -->  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script><script>
-const areas = ["Sailana","Birmaval","Raoti","Ratlam","Neemuch","Mandsor","Namli"];
-const yearSelect = document.getElementById("yearSelect");
-const monthSelect = document.getElementById("monthSelect");
-const tableBody = document.getElementById("tableBody");
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+const areas=["Sailana","Birmaval","Raoti","Ratlam","Neemuch","Mandsor","Namli"];
+const ySel=document.getElementById("yearSelect");
+const mSel=document.getElementById("monthSelect");
+const body=document.getElementById("tableBody");
 
-function loadYearMonth(){
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = now.getMonth();
+const now=new Date();
 
-  yearSelect.innerHTML='';
-  for(let i=y-1;i<=y+1;i++){
-    yearSelect.innerHTML += `<option value="${i}">${i}</option>`;
-  }
-
-  monthSelect.innerHTML='';
-  for(let i=0;i<12;i++){
-    const d=new Date(0,i);
-    monthSelect.innerHTML += `<option value="${i+1}">${d.toLocaleString('default',{month:'long'})}</option>`;
-  }
-
-  yearSelect.value=y;
-  monthSelect.value=m+1;
+/* Year */
+for(let y=now.getFullYear()-1;y<=now.getFullYear()+1;y++){
+  ySel.innerHTML+=`<option value="${y}">${y}</option>`;
 }
+
+/* Month */
+const months=["January","February","March","April","May","June",
+"July","August","September","October","November","December"];
+months.forEach((m,i)=>{
+  mSel.innerHTML+=`<option value="${i+1}">${m}</option>`;
+});
+
+ySel.value=now.getFullYear();
+mSel.value=now.getMonth()+1;
 
 function key(){
-  return `${yearSelect.value}-${String(monthSelect.value).padStart(2,'0')}`;
+  return `${ySel.value}-${String(mSel.value).padStart(2,"0")}`;
 }
 
-function loadTable(){
-  tableBody.innerHTML='';
-  const k = key();
-  const data = JSON.parse(localStorage.getItem(k)||'{}');
+function load(){
+  body.innerHTML="";
+  const data=JSON.parse(localStorage.getItem(key())||"{}");
 
   areas.forEach(area=>{
-    const tr=document.createElement('tr');
+    const tr=document.createElement("tr");
 
-    const tdA=document.createElement('td');
-    tdA.textContent=area;
-    tdA.className='area';
+    const td1=document.createElement("td");
+    td1.textContent=area;
+    td1.className="area";
 
-    const tdD=document.createElement('td');
-    const dateInput=document.createElement('input');
-    dateInput.type='text';
-    dateInput.placeholder='DD-MM-YYYY';
-    dateInput.value=data[area]?.date||'';
+    const td2=document.createElement("td");
+    const d=document.createElement("input");
+    d.type="text";
+    d.placeholder="DD-MM-YYYY";
+    d.value=data[area]?.date||"";
 
-    const tdR=document.createElement('td');
-    const rem=document.createElement('input');
-    rem.type='text';
-    rem.placeholder='Remark';
-    rem.value=data[area]?.remark||'';
+    const td3=document.createElement("td");
+    const r=document.createElement("input");
+    r.type="text";
+    r.placeholder="Remark";
+    r.value=data[area]?.remark||"";
 
-    flatpickr(dateInput,{
-      dateFormat:'d-m-Y',
-      defaultDate:dateInput.value || null,
-      onChange:function(selectedDates, dateStr){
-        save();
-      }
+    flatpickr(d,{
+      dateFormat:"d-m-Y",
+      disableMobile:true,   // ⭐ FINAL MOBILE FIX
+      onChange:save
     });
 
     function save(){
-      tr.className = dateInput.value ? 'done':'pending';
-      data[area]={date:dateInput.value,remark:rem.value};
-      localStorage.setItem(k,JSON.stringify(data));
+      data[area]={date:d.value,remark:r.value};
+      tr.className=d.value ? "done":"pending";
+      localStorage.setItem(key(),JSON.stringify(data));
     }
 
-    rem.addEventListener('input',save);
+    r.oninput=save;
 
-    tdD.appendChild(dateInput);
-    tdR.appendChild(rem);
-
-    tr.appendChild(tdA);
-    tr.appendChild(tdD);
-    tr.appendChild(tdR);
-
-    tableBody.appendChild(tr);
+    td2.appendChild(d);
+    td3.appendChild(r);
+    tr.append(td1,td2,td3);
+    body.appendChild(tr);
     save();
   });
 }
 
-yearSelect.onchange=loadTable;
-monthSelect.onchange=loadTable;
-
-loadYearMonth();
-loadTable();
-</script></body>
+ySel.onchange=load;
+mSel.onchange=load;
+load();
+</script>
+</body>
 </html>
