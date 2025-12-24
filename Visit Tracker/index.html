@@ -1,188 +1,256 @@
 <!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Monthly Visit Tracker</title>  <style>
-    body{
-      margin:0;
-      font-family: Arial, sans-serif;
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Stock Physical Verification</title>  <!-- Google Font -->  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">  <style>
+    /* ===== RESET & MOBILE FIXES ===== */
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      overscroll-behavior-y: contain; /* 🚫 pull-to-refresh disable */
       background: linear-gradient(135deg, #667eea, #764ba2);
-      min-height:100vh;
-      display:flex;
-      justify-content:center;
-      align-items:flex-start;
-      padding:20px;
+      min-height: 100vh;
     }
-    .card{
-      background:#fff;
-      width:100%;
-      max-width:900px;
-      border-radius:16px;
-      box-shadow:0 10px 25px rgba(0,0,0,0.15);
-      padding:20px;
+
+    /* ===== MAIN CARD ===== */
+    .container {
+      max-width: 1000px;
+      margin: 20px auto;
+      padding: 16px;
+      background: #ffffff;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     }
-    h1{
-      margin:0 0 15px;
-      text-align:center;
-      color:#333;
+
+    h2 {
+      text-align: center;
+      margin-bottom: 12px;
+      color: #333;
     }
-    .controls{
-      display:flex;
-      justify-content:center;
-      gap:10px;
-      margin-bottom:15px;
-      flex-wrap:wrap;
+
+    /* ===== STATUS BOX ===== */
+    #statusBox {
+      width: 100%;
+      max-width: 280px;
+      height: 38px;
+      margin: 0 auto 15px;
+      font-weight: 700;
+      text-align: center;
+      color: #fff;
+      line-height: 38px;
+      border-radius: 8px;
+      background: #9e9e9e;
     }
-    select{
-      padding:8px 12px;
-      border-radius:8px;
-      border:1px solid #ccc;
-      font-size:14px;
+
+    /* ===== INPUT AREA ===== */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 15px;
     }
-    table{
-      width:100%;
-      border-collapse:collapse;
+
+    input[type='file'],
+    input[type='text'] {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+      width: 100%;
+      max-width: 320px;
     }
-    th, td{
-      padding:10px;
-      border:1px solid #ddd;
-      text-align:center;
-      font-size:14px;
+
+    button {
+      padding: 10px 16px;
+      font-size: 15px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+      width: 100%;
+      max-width: 160px;
     }
-    th{
-      background:#f5f6fa;
+
+    button:hover { opacity: 0.9; }
+
+    #fileName {
+      width: 100%;
+      text-align: center;
+      font-size: 14px;
+      color: #555;
     }
-    .pending{
-      background:#ffebeb;
-      color:#c0392b;
-      font-weight:bold;
+
+    /* ===== TABLE ===== */
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-top: 15px;
     }
-    .done{
-      background:#e8fff1;
-      color:#27ae60;
-      font-weight:bold;
+
+    table {
+      border-collapse: collapse;
+      width: auto;           /* 🔥 auto-fit */
+      table-layout: auto;    /* 🔥 content based */
+      min-width: 100%;
+      display: none;
     }
-    .area{
-      color:#000;
-      font-weight:bold;
-      text-align:left;
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px 10px;
+      font-size: 14px;
+      white-space: nowrap;   /* 🔥 fit content */
+      text-align: left;
     }
-    input[type="date"], input[type="text"]{
-      width:100%;
-      padding:6px;
-      border-radius:6px;
-      border:1px solid #ccc;
-      font-size:13px;
-      box-sizing:border-box;
+
+    th {
+      background: #f3f4f6;
+      font-weight: 600;
     }
-    @media(max-width:600px){
-      th, td{font-size:12px; padding:8px;}
+
+    tr.single-found { background-color: #c6f6c6 !important; }
+    tr.duplicate-found { background-color: #fff3b3 !important; }
+
+    /* ===== MOBILE ===== */
+    @media (max-width: 600px) {
+      h2 { font-size: 18px; }
+      button { max-width: 100%; }
     }
   </style></head>
-<body>
-  <div class="card">
-    <h1>Monthly Visit Tracker</h1><div class="controls">
-  <select id="yearSelect"></select>
-  <select id="monthSelect"></select>
-</div>
+<body><div class="container">
+  <h2>Stock Physical Verification</h2>  <div id="statusBox">Status</div>  <div class="controls">
+    <input type="file" id="fileInput" accept=".xlsx,.xls" />
+    <div id="fileName"></div>
+  </div>  <div class="controls">
+    <input type="text" id="searchBox" placeholder="Enter Chassis Number" />
+    <button onclick="searchChassis()">Verify</button>
+    <button onclick="downloadExcelWithSummary()">Save & Summary</button>
+  </div>  <div class="table-wrap">
+    <table id="dataTable"></table>
+  </div>
+</div><script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script><script>
+let excelData = [];
+const fileInput = document.getElementById('fileInput');
+const table = document.getElementById('dataTable');
 
-<table>
-  <thead>
-    <tr>
-      <th>Area Name</th>
-      <th>Visit Date</th>
-      <th>Remark</th>
-    </tr>
-  </thead>
-  <tbody id="tableBody"></tbody>
-</table>
+fileInput.onchange = function(e) {
+  const fileLabel = document.getElementById('fileName');
+  if (!e.target.files.length) return;
 
-  </div><script>
-const areas = ["Sailana","Birmawal","Raoti","Ratlam","Neemuch","Mandsor","Namli"];
-const yearSelect = document.getElementById("yearSelect");
-const monthSelect = document.getElementById("monthSelect");
-const tableBody = document.getElementById("tableBody");
+  fileLabel.innerText = 'Loaded: ' + e.target.files[0].name;
 
-function loadYearMonth(){
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth(); // 0-based
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: 'array' });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    excelData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true });
+    renderTable();
+  };
+  reader.readAsArrayBuffer(e.target.files[0]);
+};
 
-  yearSelect.innerHTML = '';
-  for(let y=currentYear-1; y<=currentYear+1; y++){
-    const opt = document.createElement('option');
-    opt.value = y;
-    opt.textContent = y;
-    yearSelect.appendChild(opt);
-  }
+function renderTable() {
+  table.innerHTML = '';
+  table.style.display = 'table';
 
-  monthSelect.innerHTML = '';
-  for(let m=0; m<12; m++){
-    const d = new Date(0, m);
-    const opt = document.createElement('option');
-    opt.value = m+1;
-    opt.textContent = d.toLocaleString('default',{month:'long'});
-    monthSelect.appendChild(opt);
-  }
-
-  yearSelect.value = currentYear;
-  monthSelect.value = currentMonth+1;
-}
-
-function getKey(){
-  const y = yearSelect.value;
-  const m = String(monthSelect.value).padStart(2,'0');
-  return `${y}-${m}`;
-}
-
-function loadTable(){
-  tableBody.innerHTML='';
-  const key = getKey();
-  const data = JSON.parse(localStorage.getItem(key)|| '{}');
-
-  areas.forEach(area=>{
+  excelData.forEach((row, i) => {
     const tr = document.createElement('tr');
-
-    const tdArea = document.createElement('td');
-    tdArea.textContent = area;
-    tdArea.className = 'area';
-
-    const tdDate = document.createElement('td');
-    const dateInput = document.createElement('input');
-    dateInput.type='date';
-    dateInput.value = data[area]?.date || '';
-
-    const tdRemark = document.createElement('td');
-    const remarkInput = document.createElement('input');
-    remarkInput.type='text';
-    remarkInput.placeholder='Remark';
-    remarkInput.value = data[area]?.remark || '';
-
-    function updateStatus(){
-      tr.className = dateInput.value ? 'done':'pending';
-      data[area] = {date:dateInput.value, remark:remarkInput.value};
-      localStorage.setItem(key, JSON.stringify(data));
-    }
-
-    dateInput.addEventListener('change',updateStatus);
-    remarkInput.addEventListener('input',updateStatus);
-
-    tdDate.appendChild(dateInput);
-    tdRemark.appendChild(remarkInput);
-
-    tr.appendChild(tdArea);
-    tr.appendChild(tdDate);
-    tr.appendChild(tdRemark);
-
-    tableBody.appendChild(tr);
-    updateStatus();
+    row.forEach(cell => {
+      const td = document.createElement(i === 0 ? 'th' : 'td');
+      td.innerText = cell ?? '';
+      tr.appendChild(td);
+    });
+    table.appendChild(tr);
   });
 }
 
-yearSelect.addEventListener('change', loadTable);
-monthSelect.addEventListener('change', loadTable);
+function searchChassis() {
+  const val = document.getElementById('searchBox').value.trim();
+  if (!val) return;
 
-loadYearMonth();
-loadTable();
+  const statusBox = document.getElementById('statusBox');
+  const rows = table.rows;
+
+  for (let i = 1; i < rows.length; i++) {
+    if (!rows[i].classList.contains('single-found')) {
+      rows[i].classList.remove('duplicate-found');
+    }
+  }
+
+  let matched = [];
+  for (let i = 1; i < rows.length; i++) {
+    const cell = rows[i].cells[1];
+    if (cell && cell.innerText.includes(val)) matched.push(rows[i]);
+  }
+
+  if (matched.length === 0) {
+    statusBox.innerText = 'Not Found';
+    statusBox.style.background = 'red';
+    return;
+  }
+
+  if (matched.length === 1) {
+    statusBox.innerText = 'Verified';
+    statusBox.style.background = 'green';
+    matched[0].classList.add('single-found');
+    matched[0].classList.remove('duplicate-found');
+  } else {
+    statusBox.innerText = 'Duplicate';
+    statusBox.style.background = 'orange';
+    matched.forEach(tr => {
+      if (!tr.classList.contains('single-found')) {
+        tr.classList.add('duplicate-found');
+      }
+    });
+  }
+}
+
+function downloadExcelWithSummary() {
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.table_to_sheet(table);
+  const range = XLSX.utils.decode_range(ws['!ref']);
+
+  let verified = 0, duplicate = 0;
+
+  for (let r = 1; r <= range.e.r; r++) {
+    const tr = table.rows[r];
+    let fill = null;
+
+    if (tr.classList.contains('single-found')) {
+      fill = { fgColor: { rgb: 'C6F6C6' } };
+      verified++;
+    } else if (tr.classList.contains('duplicate-found')) {
+      fill = { fgColor: { rgb: 'FFF3B3' } };
+      duplicate++;
+    }
+
+    if (fill) {
+      for (let c = range.s.c; c <= range.e.c; c++) {
+        const ref = XLSX.utils.encode_cell({ r, c });
+        if (ws[ref]) ws[ref].s = { fill };
+      }
+    }
+  }
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Verification');
+
+  const summary = [
+    ['Summary'],
+    ['Verified (Green)', verified],
+    ['Duplicate (Yellow)', duplicate],
+    ['Total Rows', table.rows.length - 1]
+  ];
+
+  const wsSum = XLSX.utils.aoa_to_sheet(summary);
+  XLSX.utils.book_append_sheet(wb, wsSum, 'Summary');
+
+  XLSX.writeFile(wb, 'verified_stock_with_summary.xlsx');
+}
 </script></body>
 </html>
