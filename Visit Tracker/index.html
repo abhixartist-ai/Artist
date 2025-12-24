@@ -1,164 +1,258 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Stock Physical Verification</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Stock Physical Verification</title>  <!-- Google Font -->  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">  <style>
+    /* ===== RESET & MOBILE FIXES ===== */
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      min-height: 100vh;
+      overscroll-behavior: none; /* 🚫 pull-to-refresh disable (strong) */
+      overflow-y: auto;
+      touch-action: pan-x pan-y; /* 🚫 refresh gesture block */
+    }
 
-<style>
-/* 🔒 Disable pull to refresh */
-html, body {
-  overscroll-behavior: none;
-  touch-action: manipulation;
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  font-family: Arial, sans-serif;
-}
+    /* ===== MAIN CARD ===== */
+    .container {
+      max-width: 1000px;
+      margin: 20px auto;
+      padding: 16px;
+      background: #ffffff;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
 
-/* 🌈 Background */
-body {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-}
+    h2 {
+      text-align: center;
+      margin-bottom: 12px;
+      color: #333;
+    }
 
-/* 📦 Main Card */
-.container {
-  background: #fff;
-  width: 95%;
-  max-width: 500px;
-  margin: 15px auto;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-}
+    /* ===== STATUS BOX ===== */
+    #statusBox {
+      width: 100%;
+      max-width: 280px;
+      height: 38px;
+      margin: 0 auto 15px;
+      font-weight: 700;
+      text-align: center;
+      color: #fff;
+      line-height: 38px;
+      border-radius: 8px;
+      background: #9e9e9e;
+    }
 
-/* 🏷️ Heading */
-h2 {
-  text-align: center;
-  margin-bottom: 15px;
-  color: #333;
-}
+    /* ===== INPUT AREA ===== */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 15px;
+    }
 
-/* 🧾 Inputs */
-input[type="file"],
-input[type="text"] {
-  width: 100%;
-  padding: 12px;
-  margin: 8px 0;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 16px;
-}
+    input[type='file'],
+    input[type='text'] {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+      width: 100%;
+      max-width: 320px;
+    }
 
-/* 🔘 Buttons */
-.btn-row {
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-}
+    button {
+      padding: 10px 16px;
+      font-size: 15px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+      width: 100%;
+      max-width: 160px;
+    }
 
-button {
-  flex: 1;
-  padding: 12px;
-  font-size: 16px;
-  border: none;
-  border-radius: 8px;
-  color: #fff;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  cursor: pointer;
-}
+    button:hover { opacity: 0.9; }
 
-button:active {
-  transform: scale(0.97);
-}
+    #fileName {
+      width: 100%;
+      text-align: center;
+      font-size: 14px;
+      color: #555;
+    }
 
-/* 📊 Status Box */
-#statusBox {
-  margin-top: 12px;
-  padding: 10px;
-  text-align: center;
-  font-weight: bold;
-  border-radius: 8px;
-  color: #fff;
-  display: none;
-}
+    /* ===== TABLE ===== */
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-top: 15px;
+    }
 
-/* 📱 Mobile Fix */
-@media (max-width: 480px) {
-  .btn-row {
-    flex-direction: column;
-  }
-}
-</style>
-</head>
+    table {
+      border-collapse: collapse;
+      width: auto;           /* 🔥 auto-fit */
+      table-layout: auto;    /* 🔥 content based */
+      min-width: 100%;
+      display: none;
+    }
 
-<body>
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px 10px;
+      font-size: 14px;
+      white-space: nowrap;   /* 🔥 fit content */
+      text-align: left;
+    }
 
-<div class="container">
-  <h2>Stock Physical Verification</h2>
+    th {
+      background: #f3f4f6;
+      font-weight: 600;
+    }
 
-  <input type="file" id="fileInput">
-  <input type="text" id="searchInput" placeholder="Enter Chassis Number">
+    tr.single-found { background-color: #c6f6c6 !important; }
+    tr.duplicate-found { background-color: #fff3b3 !important; }
 
-  <div class="btn-row">
-    <button onclick="verify()">Verify</button>
-    <button onclick="saveSummary()">Save & Summary</button>
+    /* ===== MOBILE ===== */
+    @media (max-width: 600px) {
+      h2 { font-size: 18px; }
+      button { max-width: 100%; }
+    }
+  </style></head>
+<body ontouchstart=""><div class="container">
+  <h2>Stock Physical Verification</h2>  <div id="statusBox">Status</div>  <div class="controls">
+    <input type="file" id="fileInput" accept=".xlsx,.xls" />
+    <div id="fileName"></div>
+  </div>  <div class="controls">
+    <input type="text" id="searchBox" placeholder="Enter Chassis Number" />
+    <button onclick="searchChassis()">Verify</button>
+    <button onclick="downloadExcelWithSummary()">Save & Summary</button>
+  </div>  <div class="table-wrap">
+    <table id="dataTable"></table>
   </div>
+</div><script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script><script>
+let excelData = [];
+const fileInput = document.getElementById('fileInput');
+const table = document.getElementById('dataTable');
 
-  <div id="statusBox"></div>
-</div>
+fileInput.onchange = function(e) {
+  const fileLabel = document.getElementById('fileName');
+  if (!e.target.files.length) return;
 
-<script>
-/* 🔒 Disable pull-down refresh (Android fix) */
-let startY = 0;
+  fileLabel.innerText = 'Loaded: ' + e.target.files[0].name;
 
-document.addEventListener('touchstart', e => {
-  startY = e.touches[0].clientY;
-}, { passive: false });
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const data = new Uint8Array(e.target.result);
+    const workbook = XLSX.read(data, { type: 'array' });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    excelData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true });
+    renderTable();
+  };
+  reader.readAsArrayBuffer(e.target.files[0]);
+};
 
-document.addEventListener('touchmove', e => {
-  const currentY = e.touches[0].clientY;
-  if (window.scrollY === 0 && currentY > startY) {
-    e.preventDefault();
+function renderTable() {
+  table.innerHTML = '';
+  table.style.display = 'table';
+
+  excelData.forEach((row, i) => {
+    const tr = document.createElement('tr');
+    row.forEach(cell => {
+      const td = document.createElement(i === 0 ? 'th' : 'td');
+      td.innerText = cell ?? '';
+      tr.appendChild(td);
+    });
+    table.appendChild(tr);
+  });
+}
+
+function searchChassis() {
+  const val = document.getElementById('searchBox').value.trim();
+  if (!val) return;
+
+  const statusBox = document.getElementById('statusBox');
+  const rows = table.rows;
+
+  for (let i = 1; i < rows.length; i++) {
+    if (!rows[i].classList.contains('single-found')) {
+      rows[i].classList.remove('duplicate-found');
+    }
   }
-}, { passive: false });
 
-/* 🔍 Demo verify logic (replace with your real logic) */
-function verify() {
-  const val = document.getElementById("searchInput").value.trim();
-  const box = document.getElementById("statusBox");
+  let matched = [];
+  for (let i = 1; i < rows.length; i++) {
+    const cell = rows[i].cells[1];
+    if (cell && cell.innerText.includes(val)) matched.push(rows[i]);
+  }
 
-  if (!val) {
-    box.style.display = "block";
-    box.style.background = "red";
-    box.innerText = "❌ Please enter number";
+  if (matched.length === 0) {
+    statusBox.innerText = 'Not Found';
+    statusBox.style.background = 'red';
     return;
   }
 
-  // Demo conditions
-  if (val.length >= 6) {
-    box.style.display = "block";
-    box.style.background = "green";
-    box.innerText = "✅ Exact Match Found (GREEN)";
-  } else if (val.length >= 2) {
-    box.style.display = "block";
-    box.style.background = "gold";
-    box.style.color = "#000";
-    box.innerText = "⚠ Duplicate Found (YELLOW)";
+  if (matched.length === 1) {
+    statusBox.innerText = 'Verified';
+    statusBox.style.background = 'green';
+    matched[0].classList.add('single-found');
+    matched[0].classList.remove('duplicate-found');
   } else {
-    box.style.display = "block";
-    box.style.background = "red";
-    box.innerText = "❌ Not Found";
+    statusBox.innerText = 'Duplicate';
+    statusBox.style.background = 'orange';
+    matched.forEach(tr => {
+      if (!tr.classList.contains('single-found')) {
+        tr.classList.add('duplicate-found');
+      }
+    });
   }
 }
 
-function saveSummary() {
-  alert("Saved successfully ✔️");
-}
-</script>
+function downloadExcelWithSummary() {
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.table_to_sheet(table);
+  const range = XLSX.utils.decode_range(ws['!ref']);
 
-</body>
+  let verified = 0, duplicate = 0;
+
+  for (let r = 1; r <= range.e.r; r++) {
+    const tr = table.rows[r];
+    let fill = null;
+
+    if (tr.classList.contains('single-found')) {
+      fill = { fgColor: { rgb: 'C6F6C6' } };
+      verified++;
+    } else if (tr.classList.contains('duplicate-found')) {
+      fill = { fgColor: { rgb: 'FFF3B3' } };
+      duplicate++;
+    }
+
+    if (fill) {
+      for (let c = range.s.c; c <= range.e.c; c++) {
+        const ref = XLSX.utils.encode_cell({ r, c });
+        if (ws[ref]) ws[ref].s = { fill };
+      }
+    }
+  }
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Verification');
+
+  const summary = [
+    ['Summary'],
+    ['Verified (Green)', verified],
+    ['Duplicate (Yellow)', duplicate],
+    ['Total Rows', table.rows.length - 1]
+  ];
+
+  const wsSum = XLSX.utils.aoa_to_sheet(summary);
+  XLSX.utils.book_append_sheet(wb, wsSum, 'Summary');
+
+  XLSX.writeFile(wb, 'verified_stock_with_summary.xlsx');
+}
+</script></body>
 </html>
