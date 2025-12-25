@@ -1,1 +1,192 @@
-hell
+<!DOCTYPE html><html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monthly Visit Tracker</title><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"><style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  padding:20px;
+}
+.card{
+  background:#fff;
+  max-width:1000px;
+  margin:auto;
+  border-radius:16px;
+  padding:20px;
+  box-shadow:0 10px 25px rgba(0,0,0,.2);
+}
+h1{text-align:center;margin-bottom:15px}
+
+.controls{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:15px;
+}
+select{
+  padding:8px 12px;
+  border-radius:8px;
+  font-size:14px;
+}
+
+/* MOBILE SAFE TABLE */
+.table-wrap{
+  width:100%;
+  overflow-x:auto;
+}
+table{
+  width:100%;
+  min-width:520px;
+  border-collapse:collapse;
+}
+th,td{
+  border:1px solid #ddd;
+  padding:10px;
+  font-size:14px;
+}
+th{background:#f4f6fb}
+
+.area{ text-align:left; color:#000; }
+.pending{background:#ffeded}
+.done{background:#eafff1}
+
+input[type=text]{
+  width:100%;
+  padding:10px;
+  min-height:42px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-size:14px;
+  background:#fff;
+  box-sizing:border-box;
+}
+
+@media(max-width:600px){
+  th,td{font-size:12px}
+}
+
+/* Flatpickr colors */
+.flatpickr-months{
+  background:linear-gradient(135deg,#667eea,#764ba2);
+}
+.flatpickr-current-month,
+.flatpickr-monthDropdown-months{
+  color:#fff !important;
+}
+.flatpickr-day.selected{
+  background:#667eea;
+  color:#fff;
+}
+</style></head><body>
+<div class="card">
+<h1>Monthly Visit Tracker</h1><div class="controls">
+  <select id="yearSelect"></select>
+  <select id="monthSelect"></select>
+</div><div class="table-wrap">
+<table>
+<thead>
+<tr>
+  <th>Area Name</th>
+  <th>Visit Date (DD-MM-YYYY)</th>
+  <th>Remark</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
+</div>
+</div><script src="https://cdn.jsdelivr.net/npm/flatpickr"></script><script>
+const areas=["Sailana","Birmaval","Raoti","Ratlam","Neemuch","Mandsor","Namli"];
+const ySel=document.getElementById("yearSelect");
+const mSel=document.getElementById("monthSelect");
+const body=document.getElementById("tableBody");
+
+const now=new Date();
+
+// Year
+for(let y=now.getFullYear()-1;y<=now.getFullYear()+1;y++){
+  ySel.innerHTML+=`<option value="${y}">${y}</option>`;
+}
+
+// Month
+const months=["January","February","March","April","May","June","July","August","September","October","November","December"];
+months.forEach((m,i)=>{
+  mSel.innerHTML+=`<option value="${i+1}">${m}</option>`;
+});
+
+ySel.value=now.getFullYear();
+mSel.value=now.getMonth()+1;
+
+function key(){
+  return `${ySel.value}-${String(mSel.value).padStart(2,'0')}`;
+}
+
+function load(){
+  body.innerHTML="";
+  const data=JSON.parse(localStorage.getItem(key())||"{}");
+
+  areas.forEach(area=>{
+    const tr=document.createElement("tr");
+
+    const td1=document.createElement("td");
+    td1.textContent=area;
+    td1.className="area";
+
+    const td2=document.createElement("td");
+    const d=document.createElement("input");
+    d.type="text";
+    d.placeholder="DD-MM-YYYY";
+    d.readOnly=true;
+    d.setAttribute("inputmode","none");
+    d.value=data[area]?.date||"";
+
+    const td3=document.createElement("td");
+    const r=document.createElement("input");
+    r.type="text";
+    r.placeholder="Remark";
+    r.value=data[area]?.remark||"";
+
+    function save(){
+      data[area]={date:d.value,remark:r.value};
+      tr.className=d.value?"done":"pending";
+      localStorage.setItem(key(),JSON.stringify(data));
+    }
+
+    flatpickr(d,{
+      dateFormat:"d-m-Y",
+      disableMobile:true,
+      allowInput:false,
+      defaultDate:d.value||null,
+      onChange:save,
+      onReady:function(_,__,instance){
+        const btn=document.createElement("button");
+        btn.textContent="Clear";
+        btn.type="button";
+        btn.style.cssText="margin:6px;padding:6px 12px;border:none;border-radius:6px;background:#e74c3c;color:#fff;cursor:pointer";
+        btn.onclick=function(){
+          instance.clear();
+          save();
+        };
+        instance.calendarContainer.appendChild(btn);
+      }
+    });
+
+    r.oninput=save;
+
+    td2.appendChild(d);
+    td3.appendChild(r);
+    tr.append(td1,td2,td3);
+    body.appendChild(tr);
+
+    // IMPORTANT: no save() call on load
+    tr.className=d.value?"done":"pending";
+  });
+}
+
+ySel.onchange=load;
+mSel.onchange=load;
+load();
+</script></body>
+</html>
