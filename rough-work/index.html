@@ -138,18 +138,20 @@ function downloadExcelWithSummary(){
   ws['!cols']=Array.from({length:range.e.c-range.s.c+1},()=>({wch:20}));
   XLSX.utils.book_append_sheet(wb,ws,'Verification');
 
+  const totalDataRows = excelData.length > 0 ? excelData.length - 1 : 0;
+
   const summary=[
     ['Status','Count'],
     ['Verified',verified],
     ['Duplicate',duplicate],
     ['Not Found',notFound],
-    ['Total Rows', verified + duplicate + notFound]
+    ['Total Rows', totalDataRows]
   ];
 
   const wsS=XLSX.utils.aoa_to_sheet(summary);
   wsS['!cols']=[{wch:20},{wch:15}];
 
-  const colors=['C6F6C6','FFE699','F4CCCC'];
+  const colors=['C6F6C6','FFA500','F4CCCC']; // green, orange, red
   // Color Verified / Duplicate / Not Found rows (2 columns)
   for(let i=0;i<3;i++){
     for(let c=0;c<=1;c++){
