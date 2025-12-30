@@ -1,66 +1,125 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chassis Verification</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
 <style>
-  body{
-    font-family:Roboto, sans-serif;
-    margin:0;
-    background:linear-gradient(135deg,#667eea,#764ba2);
-    min-height:100vh;
-  }
-  .container{
-    max-width:1100px;
-    margin:15px auto;
-    background:#fff;
-    border-radius:12px;
-    padding:15px;
-    box-shadow:0 8px 25px rgba(0,0,0,.2);
-  }
-  h2{text-align:center;margin:10px 0;color:#333}
-  .controls{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:10px}
-  input[type=file],input[type=text]{padding:10px;border:1px solid #ccc;border-radius:6px;font-size:15px}
-  input[type=text]{flex:1;min-width:200px}
-  button{padding:10px 16px;border:none;border-radius:6px;background:#667eea;color:#fff;font-size:15px;cursor:pointer}
-  button:hover{background:#556cd6}
-  #statusBox{margin:10px auto;width:260px;height:38px;line-height:38px;text-align:center;font-weight:700;color:#fff;border-radius:6px}
-  .table-wrap{overflow-x:auto}
-  table{border-collapse:collapse;width:100%;margin-top:10px;display:none}
-  th,td{border:1px solid #ddd;padding:8px;font-size:14px;white-space:nowrap}
-  th{background:#f1f1f1}
-  tr.single-found{background:#c6f6c6!important}
-  tr.duplicate-found{background:#ffe699!important}
-  @media(max-width:600px){
-    h2{font-size:18px}
-  }
+body{
+  font-family:Roboto, sans-serif;
+  margin:0;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  min-height:100vh;
+}
+.container{
+  max-width:1100px;
+  margin:15px auto;
+  background:#fff;
+  border-radius:12px;
+  padding:15px;
+  box-shadow:0 8px 25px rgba(0,0,0,.2);
+}
+h2{text-align:center;margin:10px 0;color:#333}
+.controls{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  justify-content:center;
+  margin-bottom:10px
+}
+input[type=file],input[type=text]{
+  padding:10px;
+  border:1px solid #ccc;
+  border-radius:6px;
+  font-size:15px
+}
+input[type=text]{flex:1;min-width:200px}
+button{
+  padding:10px 16px;
+  border:none;
+  border-radius:6px;
+  background:#667eea;
+  color:#fff;
+  font-size:15px;
+  cursor:pointer
+}
+button:hover{background:#556cd6}
+
+#statusBox{
+  margin:10px auto;
+  width:260px;
+  height:38px;
+  line-height:38px;
+  text-align:center;
+  font-weight:700;
+  color:#fff;
+  border-radius:6px;
+}
+
+.table-wrap{overflow-x:auto}
+table{
+  border-collapse:collapse;
+  width:100%;
+  margin-top:10px;
+  display:none
+}
+th,td{
+  border:1px solid #ddd;
+  padding:8px;
+  font-size:14px;
+  white-space:nowrap
+}
+th{background:#f1f1f1}
+
+tr.single-found{background:#c6f6c6!important}
+tr.duplicate-found{background:#ffe699!important}
+
+@media(max-width:600px){
+  h2{font-size:18px}
+}
 </style>
 </head>
+
 <body>
 <div class="container">
   <h2>Stock Physical Verification</h2>
-  <div id="statusBox">Status</div>  <div class="controls">
+
+  <div id="statusBox">Status</div>
+
+  <div class="controls">
     <input type="file" id="fileInput" accept=".xls,.xlsx">
     <input type="text" id="searchBox" placeholder="Enter Chassis Number">
     <button onclick="searchChassis()">Verify</button>
     <button onclick="downloadExcelWithSummary()">Save & Summary</button>
-  </div>  <div class="table-wrap">
+  </div>
+
+  <div class="table-wrap">
     <table id="dataTable"></table>
   </div>
-</div><script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script><script>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+
+<script>
 let excelData=[];
 const fileInput=document.getElementById('fileInput');
 const table=document.getElementById('dataTable');
 let dirty=false;
 
 window.addEventListener('beforeunload',e=>{
-  if(dirty){e.preventDefault();e.returnValue='';}
+  if(dirty){
+    e.preventDefault();
+    e.returnValue='';
+  }
 });
 
 fileInput.onchange=e=>{
   const file=e.target.files[0];
   if(!file) return;
+
   const reader=new FileReader();
   reader.onload=ev=>{
     const wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'});
@@ -75,11 +134,12 @@ fileInput.onchange=e=>{
 function renderTable(){
   table.innerHTML='';
   table.style.display='table';
+
   excelData.forEach((row,i)=>{
     const tr=document.createElement('tr');
     row.forEach(cell=>{
       const el=document.createElement(i===0?'th':'td');
-      el.textContent=cell??'';
+      el.textContent=cell ?? '';
       tr.appendChild(el);
     });
     table.appendChild(tr);
@@ -89,28 +149,44 @@ function renderTable(){
 function searchChassis(){
   const val=document.getElementById('searchBox').value.trim();
   if(!val) return;
+
   const rows=table.rows;
   const status=document.getElementById('statusBox');
 
   for(let i=1;i<rows.length;i++){
-    if(!rows[i].classList.contains('single-found')) rows[i].classList.remove('duplicate-found');
+    if(!rows[i].classList.contains('single-found')){
+      rows[i].classList.remove('duplicate-found');
+    }
   }
 
   let matches=[];
   for(let i=1;i<rows.length;i++){
-    const cell=rows[i].cells[1];
-    if(cell && cell.textContent.includes(val)) matches.push(rows[i]);
+    const cell=rows[i].cells[1]; // Column B
+    if(cell && cell.textContent.includes(val)){
+      matches.push(rows[i]);
+    }
   }
 
   if(matches.length===0){
-    status.textContent='Not Found';status.style.background='red';dirty=true;return;
+    status.textContent='Not Found';
+    status.style.background='red';
+    dirty=true;
+    return;
   }
+
   if(matches.length===1){
-    status.textContent='Verified';status.style.background='green';
-    matches[0].classList.add('single-found');matches[0].classList.remove('duplicate-found');
+    status.textContent='Verified';
+    status.style.background='green';
+    matches[0].classList.add('single-found');
+    matches[0].classList.remove('duplicate-found');
   }else{
-    status.textContent='Duplicate';status.style.background='orange';
-    matches.forEach(r=>{if(!r.classList.contains('single-found')) r.classList.add('duplicate-found');});
+    status.textContent='Duplicate';
+    status.style.background='orange';
+    matches.forEach(r=>{
+      if(!r.classList.contains('single-found')){
+        r.classList.add('duplicate-found');
+      }
+    });
   }
   dirty=true;
 }
@@ -125,9 +201,19 @@ function downloadExcelWithSummary(){
   for(let r=1;r<=range.e.r;r++){
     const tr=table.rows[r];
     let fill;
-    if(tr.classList.contains('single-found')){fill={fgColor:{rgb:'C6F6C6'}};verified++;}
-    else if(tr.classList.contains('duplicate-found')){fill={fgColor:{rgb:'FFE699'}};duplicate++;}
-    else{fill={fgColor:{rgb:'F4CCCC'}};notFound++;}
+
+    if(tr.classList.contains('single-found')){
+      fill={fgColor:{rgb:'C6F6C6'}};
+      verified++;
+    }
+    else if(tr.classList.contains('duplicate-found')){
+      fill={fgColor:{rgb:'FFE699'}};
+      duplicate++;
+    }
+    else{
+      fill={fgColor:{rgb:'F4CCCC'}};
+      notFound++;
+    }
 
     for(let c=range.s.c;c<=range.e.c;c++){
       const ref=XLSX.utils.encode_cell({r,c});
@@ -135,7 +221,11 @@ function downloadExcelWithSummary(){
     }
   }
 
-  ws['!cols']=Array.from({length:range.e.c-range.s.c+1},()=>({wch:20}));
+  ws['!cols']=Array.from(
+    {length:range.e.c-range.s.c+1},
+    ()=>({wch:20})
+  );
+
   XLSX.utils.book_append_sheet(wb,ws,'Verification');
 
   const summary=[
@@ -153,7 +243,9 @@ function downloadExcelWithSummary(){
   for(let i=0;i<3;i++){
     for(let c=0;c<=1;c++){
       const ref=XLSX.utils.encode_cell({r:i+1,c});
-      if(wsS[ref]) wsS[ref].s={fill:{fgColor:{rgb:colors[i]}}};
+      if(wsS[ref]) wsS[ref].s={
+        fill:{fgColor:{rgb:colors[i]}}
+      };
     }
   }
 
@@ -161,5 +253,6 @@ function downloadExcelWithSummary(){
   XLSX.writeFile(wb,'verified_stock_with_summary.xlsx');
   dirty=false;
 }
-</script></body>
+</script>
+</body>
 </html>
