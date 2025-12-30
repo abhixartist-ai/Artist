@@ -28,26 +28,20 @@ h2{text-align:center;margin:10px 0;color:#333}
   flex-wrap:wrap;
   gap:10px;
   justify-content:center;
-  margin-bottom:10px
 }
-input[type=file],input[type=text]{
+input,button{
   padding:10px;
-  border:1px solid #ccc;
   border-radius:6px;
-  font-size:15px
+  font-size:15px;
 }
-input[type=text]{flex:1;min-width:200px}
+input{border:1px solid #ccc}
 button{
-  padding:10px 16px;
   border:none;
-  border-radius:6px;
   background:#667eea;
   color:#fff;
-  font-size:15px;
-  cursor:pointer
+  cursor:pointer;
 }
 button:hover{background:#556cd6}
-
 #statusBox{
   margin:10px auto;
   width:260px;
@@ -58,35 +52,27 @@ button:hover{background:#556cd6}
   color:#fff;
   border-radius:6px;
 }
-
 .table-wrap{overflow-x:auto}
 table{
   border-collapse:collapse;
   width:100%;
   margin-top:10px;
-  display:none
 }
 th,td{
   border:1px solid #ddd;
   padding:8px;
   font-size:14px;
-  white-space:nowrap
+  white-space:nowrap;
 }
 th{background:#f1f1f1}
-
 tr.single-found{background:#c6f6c6!important}
 tr.duplicate-found{background:#ffe699!important}
-
-@media(max-width:600px){
-  h2{font-size:18px}
-}
 </style>
 </head>
 
 <body>
 <div class="container">
   <h2>Stock Physical Verification</h2>
-
   <div id="statusBox">Status</div>
 
   <div class="controls">
@@ -105,41 +91,46 @@ tr.duplicate-found{background:#ffe699!important}
 
 <script>
 let excelData=[];
-const fileInput=document.getElementById('fileInput');
 const table=document.getElementById('dataTable');
 let dirty=false;
 
 window.addEventListener('beforeunload',e=>{
-  if(dirty){
-    e.preventDefault();
-    e.returnValue='';
-  }
+  if(dirty){e.preventDefault();e.returnValue='';}
 });
 
-fileInput.onchange=e=>{
-  const file=e.target.files[0];
+document.getElementById('fileInput').addEventListener('change',function(){
+  const file=this.files[0];
   if(!file) return;
 
   const reader=new FileReader();
-  reader.onload=ev=>{
-    const wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'});
-    const sheet=wb.Sheets[wb.SheetNames[0]];
-    excelData=XLSX.utils.sheet_to_json(sheet,{header:1});
-    renderTable();
-    dirty=false;
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+      const sheet=wb.Sheets[wb.SheetNames[0]];
+      excelData=XLSX.utils.sheet_to_json(sheet,{header:1,defval:''});
+
+      if(excelData.length<2){
+        alert('Excel me kam se kam heading + 1 row honi chahiye');
+        return;
+      }
+
+      renderTable();
+      dirty=false;
+    }catch(err){
+      alert('Invalid Excel file');
+      console.error(err);
+    }
   };
   reader.readAsArrayBuffer(file);
-};
+});
 
 function renderTable(){
   table.innerHTML='';
-  table.style.display='table';
-
   excelData.forEach((row,i)=>{
     const tr=document.createElement('tr');
     row.forEach(cell=>{
       const el=document.createElement(i===0?'th':'td');
-      el.textContent=cell ?? '';
+      el.textContent=cell;
       tr.appendChild(el);
     });
     table.appendChild(tr);
@@ -161,10 +152,8 @@ function searchChassis(){
 
   let matches=[];
   for(let i=1;i<rows.length;i++){
-    const cell=rows[i].cells[1]; // Column B
-    if(cell && cell.textContent.includes(val)){
-      matches.push(rows[i]);
-    }
+    const cell=rows[i].cells[1];
+    if(cell && cell.textContent.includes(val)) matches.push(rows[i]);
   }
 
   if(matches.length===0){
@@ -178,7 +167,6 @@ function searchChassis(){
     status.textContent='Verified';
     status.style.background='green';
     matches[0].classList.add('single-found');
-    matches[0].classList.remove('duplicate-found');
   }else{
     status.textContent='Duplicate';
     status.style.background='orange';
@@ -192,62 +180,56 @@ function searchChassis(){
 }
 
 function downloadExcelWithSummary(){
+  if(table.rows.length<2){
+    alert('No data to save');
+    return;
+  }
+
   const wb=XLSX.utils.book_new();
   const ws=XLSX.utils.table_to_sheet(table);
-  const range=XLSX.utils.decode_range(ws['!ref']);
 
-  let verified=0,duplicate=0,notFound=0;
+  if(!ws['!ref']){
+    alert('Nothing to export');
+    return;
+  }
+
+  const range=XLSX.utils.decode_range(ws['!ref']);
+  let v=0,d=0,n=0;
 
   for(let r=1;r<=range.e.r;r++){
     const tr=table.rows[r];
     let fill;
 
-    if(tr.classList.contains('single-found')){
-      fill={fgColor:{rgb:'C6F6C6'}};
-      verified++;
-    }
-    else if(tr.classList.contains('duplicate-found')){
-      fill={fgColor:{rgb:'FFE699'}};
-      duplicate++;
-    }
-    else{
-      fill={fgColor:{rgb:'F4CCCC'}};
-      notFound++;
-    }
+    if(tr.classList.contains('single-found')){fill={fgColor:{rgb:'C6F6C6'}};v++;}
+    else if(tr.classList.contains('duplicate-found')){fill={fgColor:{rgb:'FFE699'}};d++;}
+    else{fill={fgColor:{rgb:'F4CCCC'}};n++;}
 
-    for(let c=range.s.c;c<=range.e.c;c++){
+    for(let c=0;c<=range.e.c;c++){
       const ref=XLSX.utils.encode_cell({r,c});
       if(ws[ref]) ws[ref].s={fill};
     }
   }
 
-  ws['!cols']=Array.from(
-    {length:range.e.c-range.s.c+1},
-    ()=>({wch:20})
-  );
-
+  ws['!cols']=Array.from({length:range.e.c+1},()=>({wch:20}));
   XLSX.utils.book_append_sheet(wb,ws,'Verification');
 
-  const summary=[
+  const sum=[
     ['Status','Count'],
-    ['Verified',verified],
-    ['Duplicate',duplicate],
-    ['Not Found',notFound],
-    ['Total Rows',verified+duplicate+notFound]
+    ['Verified',v],
+    ['Duplicate',d],
+    ['Not Found',n],
+    ['Total Rows',v+d+n]
   ];
 
-  const wsS=XLSX.utils.aoa_to_sheet(summary);
+  const wsS=XLSX.utils.aoa_to_sheet(sum);
   wsS['!cols']=[{wch:20},{wch:15}];
 
-  const colors=['C6F6C6','FFE699','F4CCCC'];
-  for(let i=0;i<3;i++){
-    for(let c=0;c<=1;c++){
-      const ref=XLSX.utils.encode_cell({r:i+1,c});
-      if(wsS[ref]) wsS[ref].s={
-        fill:{fgColor:{rgb:colors[i]}}
-      };
+  ['C6F6C6','FFE699','F4CCCC'].forEach((c,i)=>{
+    for(let j=0;j<2;j++){
+      const ref=XLSX.utils.encode_cell({r:i+1,c:j});
+      if(wsS[ref]) wsS[ref].s={fill:{fgColor:{rgb:c}}};
     }
-  }
+  });
 
   XLSX.utils.book_append_sheet(wb,wsS,'Summary');
   XLSX.writeFile(wb,'verified_stock_with_summary.xlsx');
