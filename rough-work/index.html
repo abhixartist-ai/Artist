@@ -5,166 +5,64 @@
 <title>Chassis Verification</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  body{
-    font-family:Roboto, sans-serif;
-    margin:0;
-    background:linear-gradient(135deg,#667eea,#764ba2);
-    min-height:100vh;
-  }
-  .container{
-    max-width:1100px;
-    margin:15px auto;
-    background:#fff;
-    border-radius:12px;
-    padding:15px;
-    box-shadow:0 8px 25px rgba(0,0,0,.2);
-  }
-  h2{text-align:center;margin:10px 0;color:#333}
-  .controls{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:10px}
-  input[type=file],input[type=text]{padding:10px;border:1px solid #ccc;border-radius:6px;font-size:15px}
-  input[type=text]{flex:1;min-width:200px}
-  button{padding:10px 16px;border:none;border-radius:6px;background:#667eea;color:#fff;font-size:15px;cursor:pointer}
-  button:hover{background:#556cd6}
-  #statusBox{margin:10px auto;width:260px;height:38px;line-height:38px;text-align:center;font-weight:700;color:#fff;border-radius:6px}
-  .table-wrap{overflow-x:auto}
-  table{border-collapse:collapse;width:100%;margin-top:10px;display:none}
-  th,td{border:1px solid #ddd;padding:8px;font-size:14px;white-space:nowrap}
-  th{background:#f1f1f1}
-  tr.single-found{background:#c6f6c6!important}
-  tr.duplicate-found{background:#ffe699!important}
-  @media(max-width:600px){
-    h2{font-size:18px}
-  }
+body{font-family:Roboto,sans-serif;margin:0;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh}
+.container{max-width:1100px;margin:15px auto;background:#fff;border-radius:12px;padding:15px;box-shadow:0 8px 25px rgba(0,0,0,.2)}
+h2{text-align:center;margin:10px 0;color:#333}
+.controls{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:10px}
+input[type=file],input[type=text]{padding:10px;border:1px solid #ccc;border-radius:6px;font-size:15px}
+input[type=text]{flex:1;min-width:200px}
+button{padding:10px 16px;border:none;border-radius:6px;background:#667eea;color:#fff;font-size:15px;cursor:pointer}
+#statusBox{margin:10px auto;width:260px;height:38px;line-height:38px;text-align:center;font-weight:700;color:#fff;border-radius:6px}
+.table-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;margin-top:10px;display:none}
+th,td{border:1px solid #ddd;padding:8px;font-size:14px;white-space:nowrap}
+th{background:#f1f1f1}
+tr.single-found{background:#c6f6c6!important}
+tr.duplicate-found{background:#ffe699!important}
+tr.not-found{background:#f4cccc!important}
 </style>
 </head>
 <body>
 <div class="container">
-  <h2>Stock Physical Verification</h2>
-  <div id="statusBox">Status</div>  <div class="controls">
-    <input type="file" id="fileInput" accept=".xls,.xlsx">
-    <input type="text" id="searchBox" placeholder="Enter Chassis Number">
-    <button onclick="searchChassis()">Verify</button>
-    <button onclick="downloadExcelWithSummary()">Save & Summary</button>
-  </div>  <div class="table-wrap">
-    <table id="dataTable"></table>
-  </div>
-</div><script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script><script>
-let excelData=[];
-const fileInput=document.getElementById('fileInput');
-const table=document.getElementById('dataTable');
-let dirty=false;
-
-window.addEventListener('beforeunload',e=>{
-  if(dirty){e.preventDefault();e.returnValue='';}
-});
-
-fileInput.onchange=e=>{
-  const file=e.target.files[0];
-  if(!file) return;
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    const wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'});
-    const sheet=wb.Sheets[wb.SheetNames[0]];
-    excelData=XLSX.utils.sheet_to_json(sheet,{header:1});
-    renderTable();
-    dirty=false;
-  };
-  reader.readAsArrayBuffer(file);
-};
-
-function renderTable(){
-  table.innerHTML='';
-  table.style.display='table';
-  excelData.forEach((row,i)=>{
-    const tr=document.createElement('tr');
-    row.forEach(cell=>{
-      const el=document.createElement(i===0?'th':'td');
-      el.textContent=cell??'';
-      tr.appendChild(el);
-    });
-    table.appendChild(tr);
-  });
-}
-
-function searchChassis(){
-  const val=document.getElementById('searchBox').value.trim();
-  if(!val) return;
-  const rows=table.rows;
-  const status=document.getElementById('statusBox');
-
-  for(let i=1;i<rows.length;i++){
-    if(!rows[i].classList.contains('single-found')) rows[i].classList.remove('duplicate-found');
-  }
-
-  let matches=[];
-  for(let i=1;i<rows.length;i++){
-    const cell=rows[i].cells[1];
-    if(cell && cell.textContent.includes(val)) matches.push(rows[i]);
-  }
-
-  if(matches.length===0){
-    status.textContent='Not Found';status.style.background='red';dirty=true;return;
-  }
-  if(matches.length===1){
-    status.textContent='Verified';status.style.background='green';
-    matches[0].classList.add('single-found');matches[0].classList.remove('duplicate-found');
-  }else{
-    status.textContent='Duplicate';status.style.background='orange';
-    matches.forEach(r=>{if(!r.classList.contains('single-found')) r.classList.add('duplicate-found');});
-  }
-  dirty=true;
-}
-
+<h2>Stock Physical Verification</h2>
+<div id="statusBox">Status</div>
+<div class="controls">
+<input type="file" id="fileInput" accept=".xls,.xlsx">
+<input type="text" id="searchBox" placeholder="Enter Chassis Number">
+<button onclick="searchChassis()">Verify</button>
+<button onclick="downloadExcelWithSummary()">Save & Summary</button>
+</div>
+<div class="table-wrap"><table id="dataTable"></table></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<script>
+let excelData=[];const table=document.getElementById('dataTable');let dirty=false;
+window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
+fileInput.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=x=>{const wb=XLSX.read(new Uint8Array(x.target.result),{type:'array'});excelData=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1});renderTable();dirty=false};r.readAsArrayBuffer(f)};
+function renderTable(){table.innerHTML='';table.style.display='table';excelData.forEach((row,i)=>{const tr=document.createElement('tr');row.forEach(c=>{const el=document.createElement(i? 'td':'th');el.textContent=c??'';tr.appendChild(el)});table.appendChild(tr)})}
+function searchChassis(){const v=searchBox.value.trim();if(!v)return;const rows=table.rows;const sb=statusBox;
+for(let i=1;i<rows.length;i++){if(!rows[i].classList.contains('single-found'))rows[i].classList.remove('duplicate-found')}
+let matches=[];for(let i=1;i<rows.length;i++){const c=rows[i].cells[1];if(c&&c.textContent.includes(v))matches.push(rows[i])}
+if(matches.length===0){sb.textContent='Not Found';sb.style.background='red';dirty=true;return}
+if(matches.length===1){sb.textContent='Verified';sb.style.background='green';matches[0].classList.add('single-found')}
+else{sb.textContent='Duplicate';sb.style.background='orange';matches.forEach(r=>{if(!r.classList.contains('single-found'))r.classList.add('duplicate-found')})}
+dirty=true}
 function downloadExcelWithSummary(){
-  const wb=XLSX.utils.book_new();
-  const ws=XLSX.utils.table_to_sheet(table);
-  const range=XLSX.utils.decode_range(ws['!ref']);
-
-  let verified=0,duplicate=0,notFound=0;
-
-  for(let r=1;r<=range.e.r;r++){
-    const tr=table.rows[r];
-    let fill;
-    if(tr.classList.contains('single-found')){fill={fgColor:{rgb:'C6F6C6'}};verified++;}
-    else if(tr.classList.contains('duplicate-found')){fill={fgColor:{rgb:'FFE699'}};duplicate++;}
-    else{fill={fgColor:{rgb:'F4CCCC'}};notFound++;}
-
-    for(let c=range.s.c;c<=range.e.c;c++){
-      const ref=XLSX.utils.encode_cell({r,c});
-      if(ws[ref]) ws[ref].s={fill};
-    }
-  }
-
-  ws['!cols']=Array.from({length:range.e.c-range.s.c+1},()=>({wch:20}));
-  XLSX.utils.book_append_sheet(wb,ws,'Verification');
-
-  const totalDataRows = excelData.length > 0 ? excelData.length - 1 : 0;
-
-  const summary=[
-    ['Status','Count'],
-    ['Verified',verified],
-    ['Duplicate',duplicate],
-    ['Not Found',notFound],
-    ['Total Rows', totalDataRows]
-  ];
-
-  const wsS=XLSX.utils.aoa_to_sheet(summary);
-  wsS['!cols']=[{wch:20},{wch:15}];
-
-  const colors=['C6F6C6','FFA500','F4CCCC']; // green, orange, red
-  // Color Verified / Duplicate / Not Found rows (2 columns)
-  for(let i=0;i<3;i++){
-    for(let c=0;c<=1;c++){
-      const ref=XLSX.utils.encode_cell({r:i+1,c});
-      if(wsS[ref]) wsS[ref].s={fill:{fgColor:{rgb:colors[i]}}};
-    }
-  }
-  // Header style
-  ['A1','B1'].forEach(r=>{ if(wsS[r]) wsS[r].s={font:{bold:true}}; });
-
-  XLSX.utils.book_append_sheet(wb,wsS,'Summary');
-  XLSX.writeFile(wb,'verified_stock_with_summary.xlsx');
-  dirty=false;
+const wb=XLSX.utils.book_new();
+const ws=XLSX.utils.table_to_sheet(table);
+const range=XLSX.utils.decode_range(ws['!ref']);
+let verified=0,duplicate=0,notFound=0;
+for(let r=1;r<=range.e.r;r++){
+const tr=table.rows[r];let fill;
+if(tr.classList.contains('single-found')){fill={fgColor:{rgb:'C6F6C6'}};verified++}
+else if(tr.classList.contains('duplicate-found')){fill={fgColor:{rgb:'FFA500'}};duplicate++}
+else{fill={fgColor:{rgb:'F4CCCC'}};notFound++}
+for(let c=0;c<=range.e.c;c++){const ref=XLSX.utils.encode_cell({r,c});if(ws[ref])ws[ref].s={fill}}
 }
-</script></body>
+ws['!cols']=Array.from({length:range.e.c+1},()=>({wch:20}));
+XLSX.utils.book_append_sheet(wb,ws,'Verification');const dataRowCount = Math.max(excelData.length - 1, 0); const summary = [ ['Status','Count'], ['Verified', verified], ['Duplicate', duplicate], ['Not Found', notFound - 1], ['Total Rows', dataRowCount] ]; const wsS=XLSX.utils.aoa_to_sheet(summary); wsS['!cols']=[{wch:20},{wch:15}];
+
+const summaryRowColors={1:'C6F6C6',2:'FFA500',3:'F4CCCC'}; Object.keys(summaryRowColors).forEach(r=>{ for(let c=0;c<2;c++){ const ref=XLSX.utils.encode_cell({r:Number(r),c}); if(wsS[ref])wsS[ref].s={fill:{fgColor:{rgb:summaryRowColors[r]}}} } }); ['A1','B1'].forEach(r=>{if(wsS[r])wsS[r].s={font:{bold:true}}}); XLSX.utils.book_append_sheet(wb,wsS,'Summary'); XLSX.writeFile(wb,'verified_stock_with_summary.xlsx'); dirty=false} </script>
+
+</body>
 </html>
