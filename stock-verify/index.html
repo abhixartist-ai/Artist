@@ -211,29 +211,58 @@ function searchChassis() {
   }
 }
 
-function downloadExcelWithSummary() {
-  pageChanged = false;
-
+function downloadExcelWithSummary(){
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.table_to_sheet(table);
   const range = XLSX.utils.decode_range(ws['!ref']);
 
-  let verified = 0, duplicate = 0, notFound = 0;
+  let verified=0, duplicate=0, notFound=0;
 
-  for (let r = 1; r <= range.e.r; r++) {
+  for(let r=1;r<=range.e.r;r++){
     const tr = table.rows[r];
-    let fill = null;
+    let fill=null;
 
-    if (tr.classList.contains('single-found')) {
-      fill = { fgColor: { rgb: 'C6F6C6' } };
-      verified++;
-    } else if (tr.classList.contains('duplicate-found')) {
-      fill = { fgColor: { rgb: 'FFF3B3' } };
-      duplicate++;
+    if(tr.classList.contains('single-found')){
+      fill={fgColor:{rgb:'C6F6C6'}}; verified++;
+    } else if(tr.classList.contains('duplicate-found')){
+      fill={fgColor:{rgb:'FFE699'}}; duplicate++;
     } else {
-      fill = { fgColor: { rgb: 'FECACA' } }; // red for not found
-      notFound++;
+      fill={fgColor:{rgb:'F4CCCC'}}; notFound++;
     }
+
+    for(let c=range.s.c;c<=range.e.c;c++){
+      const ref=XLSX.utils.encode_cell({r,c});
+      if(ws[ref]) ws[ref].s={fill};
+    }
+  }
+
+  ws['!cols'] = [];
+  for(let c=range.s.c;c<=range.e.c;c++) ws['!cols'].push({wch:20});
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Verification');
+
+  const summary=[
+    ['Status','Count'],
+    ['Verified', verified],
+    ['Duplicate', duplicate],
+    ['Not Found', notFound],
+    ['Total Rows', verified+duplicate+notFound]
+  ];
+
+  const wsS = XLSX.utils.aoa_to_sheet(summary);
+  wsS['!cols']=[{wch:20},{wch:15}];
+
+  const colors={1:'C6F6C6',2:'FFE699',3:'F4CCCC'};
+  for(let r=1;r<=3;r++){
+    for(let c=0;c<=1;c++){
+      const ref=XLSX.utils.encode_cell({r,c});
+      if(wsS[ref]) wsS[ref].s={fill:{fgColor:{rgb:colors[r]}}};
+    }
+  }
+
+  XLSX.utils.book_append_sheet(wb, wsS, 'Summary');
+  XLSX.writeFile(wb,'verified_stock_with_summary.xlsx');
+}
 
     for (let c = range.s.c; c <= range.e.c; c++) {
       const ref = XLSX.utils.encode_cell({ r, c });
