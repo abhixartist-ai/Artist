@@ -12,7 +12,6 @@
       font-family: 'Roboto', sans-serif;
       background: linear-gradient(135deg, #667eea, #764ba2);
       min-height: 100vh;
-      overscroll-behavior: none;
     }
 
     .container {
@@ -232,29 +231,22 @@ function downloadExcelWithSummary() {
       fill = { fgColor: { rgb: 'FFF3B3' } };
       duplicate++;
     } else {
-      fill = { fgColor: { rgb: 'FECACA' } }; // light red for not found
+      fill = { fgColor: { rgb: 'FECACA' } }; // red for not found
       notFound++;
     }
 
-    if (fill) {
-      for (let c = range.s.c; c <= range.e.c; c++) {
-        const ref = XLSX.utils.encode_cell({ r, c });
-        if (ws[ref]) {
-          ws[ref].s = { fill, border: {
+    for (let c = range.s.c; c <= range.e.c; c++) {
+      const ref = XLSX.utils.encode_cell({ r, c });
+      if (ws[ref]) {
+        ws[ref].s = {
+          fill,
+          border: {
             top: { style: 'thin' },
             bottom: { style: 'thin' },
             left: { style: 'thin' },
             right: { style: 'thin' }
-          }};
-        }
-      }
-    }
-  }
-
-    if (fill) {
-      for (let c = range.s.c; c <= range.e.c; c++) {
-        const ref = XLSX.utils.encode_cell({ r, c });
-        if (ws[ref]) ws[ref].s = { fill };
+          }
+        };
       }
     }
   }
@@ -265,19 +257,18 @@ function downloadExcelWithSummary() {
     ['Summary'],
     ['Verified (Green)', verified],
     ['Duplicate (Yellow)', duplicate],
-    ['Not Found (No Color)', notFound],
+    ['Not Found (Red)', notFound],
     ['Total Rows', table.rows.length - 2]
   ];
 
   const wsSummary = XLSX.utils.aoa_to_sheet(summary);
+  wsSummary['!cols'] = [{ wch: 28 }, { wch: 18 }];
 
-  // Styling summary sheet
-  const summaryRange = XLSX.utils.decode_range(wsSummary['!ref']);
-  for (let r = summaryRange.s.r; r <= summaryRange.e.r; r++) {
-    for (let c = summaryRange.s.c; c <= summaryRange.e.c; c++) {
+  const sumRange = XLSX.utils.decode_range(wsSummary['!ref']);
+  for (let r = sumRange.s.r; r <= sumRange.e.r; r++) {
+    for (let c = sumRange.s.c; c <= sumRange.e.c; c++) {
       const ref = XLSX.utils.encode_cell({ r, c });
       if (!wsSummary[ref]) continue;
-
       wsSummary[ref].s = {
         fill: r === 0 ? { fgColor: { rgb: 'E0E7FF' } } : undefined,
         font: r === 0 ? { bold: true } : undefined,
@@ -290,9 +281,6 @@ function downloadExcelWithSummary() {
       };
     }
   }
-
-  // Auto width
-  wsSummary['!cols'] = summary.map(row => ({ wch: Math.max(...row.map(v => String(v).length)) + 2 }));
 
   XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
   XLSX.writeFile(wb, 'verified_stock_with_summary.xlsx');
